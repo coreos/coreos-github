@@ -1,3 +1,19 @@
+#!/usr/bin/python
+
+#  Copyright [yyyy] [name of copyright owner]
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
 import sys
 import argparse
 from github import Github
@@ -47,9 +63,31 @@ def delete_all_hooks(repo):
         print "deleting hook %s on %s" % (hook.name, repo.name)
         hook.delete()
 
-g = Github(sys.argv[1], sys.argv[2])
-org = g.get_organization("coreos")
-repos = org.get_repos()
-for repo in repos:
-    delete_all_hooks(repo)
+# create the top-level parser
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', '--token', help='Github token', required=True)
+subparsers = parser.add_subparsers()
+
+def new_repo(args):
+    g = Github(args.token)
+    org = g.get_organization("coreos")
+    repo = org.create_repo(args.name)
     add_default_hooks(repo)
+
+parser_new_repo = subparsers.add_parser('new-repo', help="Create a new coreos repo")
+parser_new_repo.add_argument('name')
+parser_new_repo.set_defaults(func=new_repo)
+
+def reset_repo_hooks(args):
+    g = Github(args.token)
+    org = g.get_organization("coreos")
+    repos = org.get_repos()
+    for repo in repos:
+        delete_all_hooks(repo)
+        add_default_hooks(repo)
+
+parser_reset_repo_hooks = subparsers.add_parser('reset-repo-hooks', help="Set default hooks on all coreos repos")
+parser_reset_repo_hooks.set_defaults(func=reset_repo_hooks)
+
+args = parser.parse_args()
+args.func(args)
