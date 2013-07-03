@@ -21,6 +21,7 @@ from github import Github
 def add_default_hooks(repo):
     add_irc_hook(repo)
     add_email_hook(repo)
+    add_buildbot_web_hook(repo)
 
 def add_email_hook(repo):
     events = [
@@ -56,6 +57,17 @@ def add_irc_hook(repo):
     }
 
     repo.create_hook('irc', config, events, True)
+
+def add_buildbot_web_hook(repo):
+    events = [
+      "push"
+    ]
+    config = {
+        'url': 'https://buildbot-master1.coreos.marineau.org/change_hook/github',
+        'content_type': 'json',
+    }
+
+    repo.create_hook('web', config, events, True)
 
 def delete_all_hooks(repo):
     hooks = repo.get_hooks()
