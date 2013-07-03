@@ -64,7 +64,7 @@ def add_buildbot_web_hook(repo):
     ]
     config = {
         'url': 'https://buildbot-master1.coreos.marineau.org/change_hook/github',
-        'content_type': 'json',
+        'content_type': 'form',
     }
 
     repo.create_hook('web', config, events, True)
