@@ -14,11 +14,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import sys
 import argparse
 from github import Github
 
+# Hooks that are not managed by this script
+IGNORE_HOOKS = ( 'travis', )
+
 def add_default_hooks(repo):
+    print "adding default hooks to %s" % (repo.name,)
     add_irc_hook(repo)
     add_email_hook(repo)
     add_buildbot_web_hook(repo)
@@ -72,8 +75,11 @@ def add_buildbot_web_hook(repo):
 def delete_all_hooks(repo):
     hooks = repo.get_hooks()
     for hook in hooks:
-        print "deleting hook %s on %s" % (hook.name, repo.name)
-        hook.delete()
+        if hook.name in IGNORE_HOOKS:
+            print "ignoring existing hook %s on %s" % (hook.name, repo.name)
+        else:
+            print "deleting hook %s on %s" % (hook.name, repo.name)
+            hook.delete()
 
 # create the top-level parser
 parser = argparse.ArgumentParser()
