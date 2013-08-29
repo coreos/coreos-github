@@ -20,11 +20,16 @@ from github import Github
 # Hooks that are not managed by this script
 IGNORE_HOOKS = ( 'travis', )
 
-def add_default_hooks(repo):
+def remove_wiki(repo):
+    print "removing wiki from %s" % (repo.name,)
+    repo.edit(repo.name, has_wiki=False)
+
+def add_defaults(repo):
     print "adding default hooks to %s" % (repo.name,)
     add_irc_hook(repo)
     add_email_hook(repo)
     add_buildbot_web_hook(repo)
+    remove_wiki(repo)
 
 def add_email_hook(repo):
     events = [
@@ -90,7 +95,7 @@ def new_repo(args):
     g = Github(args.token)
     org = g.get_organization("coreos")
     repo = org.create_repo(args.name)
-    add_default_hooks(repo)
+    add_defaults(repo)
 
 parser_new_repo = subparsers.add_parser('new-repo', help="Create a new coreos repo")
 parser_new_repo.add_argument('name')
@@ -102,7 +107,7 @@ def reset_repo_hooks(args):
     repos = org.get_repos()
     for repo in repos:
         delete_all_hooks(repo)
-        add_default_hooks(repo)
+        add_defaults(repo)
 
 parser_reset_repo_hooks = subparsers.add_parser('reset-repo-hooks', help="Set default hooks on all coreos repos")
 parser_reset_repo_hooks.set_defaults(func=reset_repo_hooks)
